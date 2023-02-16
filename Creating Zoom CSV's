@@ -1,0 +1,85 @@
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Assign Room')
+    .addItem('Create Room', 'createRoom')
+    .addToUi();
+}
+
+function createSheet(name) {
+  // Get the active spreadsheet
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  // Insert a new sheet with the specified name
+  var sheet = spreadsheet.insertSheet(name);
+}
+
+function createCSV(GroupStart, GroupEnd){
+  var sheet = SpreadsheetApp.getActiveSheet();
+  createSheet("newCSV");
+  var csvSheet = SpreadsheetApp.getActive().getSheetByName("newCSV");
+  var roomCell = csvSheet.getRange("A1");
+  roomCell.setValue("Room Assignment");
+  var emailCell = csvSheet.getRange("B1");
+  emailCell.setValue("Email");
+  var lastRow = sheet.getLastRow();
+  var range = sheet.getRange("B1:F"+lastRow);
+  var values = range.getValues();
+  var counter = 2;
+  var i = 0;
+  while(values[i][0] != "Group "+GroupStart){
+    i = i + 1;
+  }
+  for(i; i < lastRow; i++){
+    if(values[i][0] == "Group "+GroupEnd){
+       break;
+    }
+    if(values[i][0] != "" && !(values[i][0].includes("Group"))){
+      roomCell = csvSheet.getRange("A"+counter);
+      roomCell.setValue(values[i][2]);
+      emailCell = csvSheet.getRange("B"+counter);
+      emailCell.setValue(values[i][1]);
+      counter++;
+      if(values[i][2]!="1"){
+        roomCell = csvSheet.getRange("A"+counter);
+        roomCell.setValue(values[i][2]);
+        emailCell =csvSheet.getRange("B"+counter);
+        emailCell.setValue(values[i][4]);
+        counter++; 
+      }
+    }
+  }
+  var j = i;
+  for(i = i + 1; i < j + 5; i++){
+    roomCell=csvSheet.getRange("A"+counter);
+    roomCell.setValue(values[i][2]);
+    emailCell = csvSheet.getRange("B"+counter);
+    emailCell.setValue(values[i][1]);
+    counter++;
+    if(values[i][2]!="1"){
+      roomCell = csvSheet.getRange("A"+counter);
+      roomCell.setValue(values[i][2]);
+      emailCell =csvSheet.getRange("B"+counter);
+      emailCell.setValue(values[i][4]);
+      counter++; 
+    }
+  }
+}
+
+function createRoom(){
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var ui = SpreadsheetApp.getUi();
+  var prompt = ui.prompt('Create the CSV','Enter the group range', ui.ButtonSet.OK_CANCEL);
+  var button = prompt.getSelectedButton();
+  var groupRange = prompt.getResponseText();
+  if (button == ui.Button.OK) {
+    var groupRangeList = groupRange.split(":");
+    createCSV(groupRangeList[0],groupRangeList[1]);
+  }
+  else if (button == ui.Button.CANCEL) {
+    // User clicked "Cancel"
+    Logger.log('User clicked "Cancel"');
+  } 
+  else if (button == ui.Button.CLOSE) {
+    // User clicked X in the title bar
+    Logger.log('User closed the dialog');
+  }
+}
